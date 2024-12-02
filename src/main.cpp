@@ -69,10 +69,11 @@ int CloseHandle(ULONG pid, const char* handleName) {
 }
 
 int main(int argc, const char* argv[]) {
-    if (argc == 2 && strcmp(argv[1], "-?")) {
+    if (argc == 2 && strcmp(argv[1], "-?") == 0) {
         std::cout << "List open files\n" << argv[0] << " [pid | partOfFilename]\n";
         return 0;
     }
+
     if (argc == 1) {
         DisplayHandles();
     } else {

@@ -1,13 +1,30 @@
-# Handle Tools
+#llrename  (Dec-2024)
+DOS / Windows commnad line list openfiles 
+
+Visit home website
+
+[https://landenlabs.com](https://landenlabs.com)
+
 
 ## Introduction
 
-It is a utility that displays information about open handles for any process in the system. 
-You can use it to see the programs that have a file open, 
-or to see the object types and names of all the handles of a program, 
-or to close the any handles of a program.
+Command line utility to list or find open files. Default is to list all open files preceeded with the process name and id. 
+Optionally you can pass a process id to limit output to just that process
+or pass part of a file name to isolate individual files. 
 
-## Links
+Code is all C++ with MS Visual Studio solution.
+
+## Help Banner:
+<pre>
+List open files
+llopenfiles [pid | partOfFilename]
+
+</pre>
+
+### Code based off of work from these github projects
+ 
+- https://github.com/AlSch092/DetectOpenHandles
+- https://github.com/yihleego/handle-tools/tree/master/src
 
 ### Win32 API
 
