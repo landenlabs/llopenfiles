@@ -1,0 +1,40 @@
+
+//
+//
+//
+
+#if 1
+#include "handles2.hpp"
+#define HandlesT Handles2
+#else
+#include "handles1.hpp"
+#define HandlesT Handles1
+#endif
+
+
+int DisplayHandles() { 
+    return HandlesT::FindHandles(NULL, NULL, FALSE); 
+}
+
+int DisplayHandles(ULONG pid) { 
+    return HandlesT::FindHandles(pid, NULL, FALSE);
+}
+
+int FindHandle(ULONG pid, LPSTR handleName) {
+  return HandlesT::FindHandles(pid, handleName, FALSE);
+}
+
+int CloseHandle(ULONG pid, LPSTR handleName) {
+  return HandlesT::FindHandles(pid, handleName, TRUE);
+}
+
+int main(int argc, char* argv[]) {
+    if (argc == 1) {
+       DisplayHandles();
+    } else {
+        unsigned pid = atoi(argv[1]);
+        DisplayHandles(pid);
+    }
+
+    return 1;
+}

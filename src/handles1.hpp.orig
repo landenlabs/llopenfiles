@@ -1,0 +1,8 @@
+
+#pragma once
+
+#include <windows.h>
+
+namespace Handles1 {
+    int FindHandles(ULONG pid, LPSTR handleName, BOOL closeHandle);
+}

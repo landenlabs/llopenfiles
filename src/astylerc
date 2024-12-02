@@ -1,0 +1,32 @@
+# astyle c++ format rules
+# https://astyle.sourceforge.net/astyle.html#_Option_Files
+
+
+# Att braces to end of logic, functions and classes
+--style=attach
+
+--indent-after-parens
+
+# Indent preprocessor blocsk
+--indent-preproc-block
+
+# Add padding after #include  <file>
+--pad-include
+
+# Add space after ! opereator,  as in if (! foo() && ! isTest)
+--pad-negation
+
+# Align pointer, reference, etc with type on left, ex char* or char&
+--align-pointer=type
+
+--keep-one-line-blocks
+--keep-one-line-statements
+
+# Max code length before wrap/indent
+--max-code-length=150
+
+# Pad operators
+--pad-oper
+
+# No backup
+--suffix=none

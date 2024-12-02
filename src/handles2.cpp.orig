@@ -1,0 +1,145 @@
+
+#include "Handles2.hpp"
+#include <Psapi.h>
+#include <iostream>
+
+// using namespace std;
+
+#define NT_SUCCESS(Status) (((NTSTATUS)(Status)) >= 0)
+
+/*
+    GetHandles - Returns a vector of SYSTEM_HANDLE representing all running
+   handles on the system
+*/
+std::vector<Handles2::SYSTEM_HANDLE2> Handles2::GetHandles() {
+  NtQuerySystemInformationFunc NtQuerySystemInformation =
+      (NtQuerySystemInformationFunc)GetProcAddress(
+          GetModuleHandleA("ntdll.dll"), "NtQuerySystemInformation");
+  if (!NtQuerySystemInformation) {
+    printf("Could not get NtQuerySystemInformation function address @ "
+           "Handles::GetHandles");
+    return {};
+  }
+
+  ULONG bufferSize = 0x10000;
+  PVOID buffer = nullptr;
+  NTSTATUS status = 0;
+
+  do {
+    buffer = malloc(bufferSize);
+    if (!buffer) {
+      printf("Memory allocation failed @ Handles::GetHandles\n");
+      return {};
+    }
+
+    status = NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS)16, buffer,
+                                      bufferSize, &bufferSize);
+    if (status == STATUS_INFO_LENGTH_MISMATCH) {
+      free(buffer);
+      bufferSize *= 2;
+    } else if (!NT_SUCCESS(status)) {
+      printf("NtQuerySystemInformation failed @ Handles::GetHandles\n");
+      free(buffer);
+      return {};
+    }
+  } while (status == STATUS_INFO_LENGTH_MISMATCH);
+
+  PSYSTEM_HANDLE_INFORMATION2 handleInfo = (PSYSTEM_HANDLE_INFORMATION2)buffer;
+  std::vector<SYSTEM_HANDLE2> handles(
+      handleInfo->Handles, handleInfo->Handles + handleInfo->HandleCount);
+  free(buffer);
+  return handles;
+}
+
+char nameBuffer[512];
+char typeBuffer[128];
+const unsigned OBJ_INFO_SIZE = 1024;
+
+typedef struct {
+  UNICODE_STRING Name;
+} OBJECT_NAME_INFORMATION, *POBJECT_NAME_INFORMATION;
+
+typedef struct {
+  UNICODE_STRING TypeName;
+  ULONG Reserved[22]; // reserved for internal use
+} OBJECT_TYPE_INFORMATION, *POBJECT_TYPE_INFORMATION;
+
+bool Handles2::FindHandles(ULONG pid, LPSTR handleName, bool closeHandle) {
+  auto handles = GetHandles();
+
+  POBJECT_NAME_INFORMATION pObjName =
+      (POBJECT_NAME_INFORMATION)malloc(OBJ_INFO_SIZE);
+  POBJECT_TYPE_INFORMATION pObjType =
+      (POBJECT_TYPE_INFORMATION)malloc(OBJ_INFO_SIZE);
+  char processName[MAX_PATH];
+  HANDLE processHandle = NULL;
+  ULONG lastPid = 0;
+
+  std::cerr << "Total handles=" << handles.size() << std::endl;
+
+  for (auto &handle : handles) {
+    ULONG thisPid = handle.ProcessId;
+    if (thisPid == 4 || handle.ObjectTypeNumber != 37)  // 37 = Fi;e
+      continue;
+    if (pid != 0 && pid != thisPid)
+      continue;
+
+    if (lastPid != thisPid) {
+      if (lastPid != 0)
+        CloseHandle(processHandle);
+      lastPid = thisPid;
+      processHandle = OpenProcess(PROCESS_ALL_ACCESS | PROCESS_DUP_HANDLE | PROCESS_SUSPEND_RESUME,
+                                  FALSE, handle.ProcessId);
+      if (GetModuleBaseNameA(processHandle, NULL, processName, sizeof(processName)) == 0) {
+        // Failed to get process name
+        processName[0] = '\0';
+      }
+    }
+
+    if (processHandle) {
+
+      HANDLE duplicatedHandle = INVALID_HANDLE_VALUE;
+
+      if (DuplicateHandle(processHandle, (HANDLE)handle.Handle,
+                          GetCurrentProcess(), &duplicatedHandle, 0, FALSE,
+                          DUPLICATE_SAME_ACCESS)) {
+
+        if (GetFileType(duplicatedHandle) == FILE_TYPE_DISK) {
+
+          typeBuffer[0] = '\0';
+          if (NT_SUCCESS(NtQueryObject(duplicatedHandle, ObjectTypeInformation,
+                                       pObjType, OBJ_INFO_SIZE, NULL))) {
+            WideCharToMultiByte(
+                CP_ACP, 0, pObjType->TypeName.Buffer, -1, typeBuffer,
+                min(sizeof(typeBuffer), pObjType->TypeName.Length), NULL, NULL);
+          }
+
+          nameBuffer[0] = '\0';
+          OBJECT_INFORMATION_CLASS ObjectNameInformation =
+              (OBJECT_INFORMATION_CLASS)1;
+          if (NT_SUCCESS(NtQueryObject(duplicatedHandle, ObjectNameInformation,
+                                       pObjName, OBJ_INFO_SIZE, NULL))) {
+            WideCharToMultiByte(
+                CP_ACP, 0, pObjName->Name.Buffer, -1, nameBuffer,
+                min(sizeof(nameBuffer), pObjName->Name.Length), NULL, NULL);
+          }
+
+          if (nameBuffer[0] != '\0' && typeBuffer[0] != '\0') {
+            std::cout << processName << " | " << thisPid << "| " << nameBuffer
+                      << std::endl;
+          } else {
+            std::cerr << thisPid << " noName\r";
+          }
+
+          CloseHandle(duplicatedHandle);
+        }
+      } else {
+        std::cerr << thisPid << " dup\r";
+      }
+
+    } else {
+      std::cerr << thisPid << " open\r";
+    }
+  }
+  return false;
+}
