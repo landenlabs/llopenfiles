@@ -16,9 +16,10 @@ Code is all C++ with MS Visual Studio solution.
 
 ## Help Banner:
 <pre>
-List open files
-llopenfiles [pid | partOfFilename]
+llopenfiles.exe -?
 
+List open files v1.2 Dec 22 2024
+llopenfiles [pid | partOfFilename]
 </pre>
 
 ### Code based off of work from these github projects
