@@ -2,8 +2,10 @@
 //
 //  llopenfiles     Dec-2024      Dennis Lang
 //
-//  Find open file handles
-//
+//  Find open file handles. 
+//  This program has two implementations, based off of code from these github projects
+//    https://github.com/AlSch092/DetectOpenHandles
+//    https://github.com/yihleego/handle-tools/tree/master/src
 //-------------------------------------------------------------------------------------------------
 //
 // Author: Dennis Lang - 2024
@@ -33,6 +35,7 @@
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
+#define VERSION "v1.2"
 
 #include <iostream>
 #include "handles1.hpp"
@@ -70,7 +73,7 @@ int CloseHandle(ULONG pid, const char* handleName) {
 
 int main(int argc, const char* argv[]) {
     if (argc == 2 && strcmp(argv[1], "-?") == 0) {
-        std::cout << "List open files\n" << argv[0] << " [pid | partOfFilename]\n";
+        std::cout << "List open files " VERSION  " " __DATE__ "\n" << argv[0] << " [pid | partOfFilename]\n";
         return 0;
     }
 
