@@ -110,7 +110,7 @@ void WideToMb(const TT* inBuf,  char* outBuf, unsigned outSize) {
 
 //-------------------------------------------------------------------------------------------------
 bool Handles2::FindHandles(ULONG pid, const char* findName, bool closeHandle_NOT_IMPLEMENTED) {
-    unsigned findNameLen = (findName != nullptr) ? strlen(findName) : 0;
+    size_t findNameLen = (findName != nullptr) ? strlen(findName) : 0;
     auto handles = GetHandles();
 
     POBJECT_NAME_INFORMATION pObjName =

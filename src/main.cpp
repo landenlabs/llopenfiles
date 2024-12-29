@@ -38,20 +38,20 @@
 #define VERSION "v1.2"
 
 #include <iostream>
-#include "handles1.hpp"
-#include "handles2.hpp"
-
 
 //
 // Two possible implementations to find open files
 //
+#define USE_HANDLES_2
 
-#if 2
-// Forked from  https://github.com/AlSch092/DetectOpenHandles
-#define HandlesT Handles2
+#ifdef USE_HANDLES_2
+    #include "handles2.hpp"
+    // Forked from  https://github.com/AlSch092/DetectOpenHandles
+    #define HandlesT Handles2
 #else
-// Forked from https://github.com/yihleego/handle-tools/tree/master/src
-#define HandlesT Handles1
+    #include "handles1.hpp"
+    // Forked from https://github.com/yihleego/handle-tools/tree/master/src
+    #define HandlesT Handles1
 #endif
 
 

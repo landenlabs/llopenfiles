@@ -5,9 +5,11 @@
 
 
 #include "handles1.hpp"
-#include <windows.h>
-#include "ntstatus.h"
+
 #include <psapi.h>
+// #include "ntstatus.h"
+#define STATUS_INFO_LENGTH_MISMATCH      ((NTSTATUS)0xC0000004L)
+
 #include <stdio.h>
 
 
