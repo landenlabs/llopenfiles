@@ -11,8 +11,6 @@
 // Author: Dennis Lang - 2024
 // https://landenlabs.com/
 //
-// This file is part of llopenfiles project.
-//
 // ----- License ----
 //
 // Copyright (c) 2016 Dennis Lang
@@ -35,9 +33,22 @@
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-#define VERSION "v1.2"
+#define VERSION "v1.3"
+
+#include "ll_stdhdr.hpp"
+#include "split.hpp"
 
 #include <iostream>
+#include <string>
+
+size_t optionErrCnt = 0;
+bool closeHandle = false;
+bool terminateProcess = false;
+
+
+#ifdef HAVE_WIN
+#define strncasecmp _strnicmp
+#endif
 
 //
 // Two possible implementations to find open files
@@ -54,38 +65,132 @@
     #define HandlesT Handles1
 #endif
 
+ 
 
+/* 
 int DisplayHandles() {
-    return HandlesT::FindHandles(NULL, NULL, FALSE);
+    return HandlesT::FindHandles(allPids, allNames, FALSE);
 }
 
-int DisplayHandles(ULONG pid) {
-    return HandlesT::FindHandles(pid, NULL, FALSE);
+int DisplayHandles(const PidList& findPids) {
+    return HandlesT::FindHandles(findPids, allNames, FALSE);
 }
 
-int FindHandle(ULONG pid, const char* handleName) {
-    return HandlesT::FindHandles(pid, handleName, FALSE);
+int FindHandles(const PidList& findPids, const NameList& findNames) {
+    return HandlesT::FindHandles(findPids, findNames, FALSE);
 }
 
-int CloseHandle(ULONG pid, const char* handleName) {
-    return HandlesT::FindHandles(pid, handleName, TRUE);
+int CloseHandle(const PidList& findPids, const NameList& findNames) {
+    return HandlesT::FindHandles(findPids, findNames, TRUE);
+}
+*/
+
+void showHelp(const char* argv0) {
+    std::cout << "List open files " VERSION  " " __DATE__ "\n"
+        << argv0  
+        << "\n"
+        "  -pid=<pid>   ; Limit scan to this pid\n"
+        "  -closeHandle ; When matching open handle found, try and close it\n"
+        "  -terminate   ; When matching open handle found, try and terminate process\n"
+        "\n"
+        "  partOfFileName ... \n"
+        "\n"
+        "Examples:\n"
+        "  llopenfiles file1.txt file2.txt \n"
+        "  llopenfiles -pid=123 -pid=345 \n"
+        "  llopenfiles -close my_text_file.txt \n"
+        "  llopenfiles -terminate my_text_file.txt \n"
+        "\n";
+}
+
+void showUnknown(const char* msg) {
+    std::cerr << "Unknown option:" << msg << std::endl;
+}
+
+bool validOption(const char* validCmd, const char* possibleCmd, bool reportErr = true) {
+    // Starts with validCmd else mark error
+    size_t validLen = strlen(validCmd);
+    size_t possibleLen = strlen(possibleCmd);
+
+    if (strncasecmp(validCmd, possibleCmd, std::min(validLen, possibleLen)) == 0) {
+        return true;
+    }
+
+    if (reportErr) {
+        std::cerr <<  "Unknown option:'" << possibleCmd << "', expect:'" << validCmd  << std::endl;
+        optionErrCnt++;
+    }
+    return false;
 }
 
 int main(int argc, const char* argv[]) {
-    if (argc == 2 && strcmp(argv[1], "-?") == 0) {
-        std::cout << "List open files " VERSION  " " __DATE__ "\n" << argv[0] << " [pid | partOfFilename]\n";
-        return 0;
+
+    NameList findNames;
+    PidList  findPids;
+
+    bool doParseCmds = true;
+    string endCmds = "--";
+    for (int argn = 1; argn < argc; argn++) {
+        string argStr(argv[argn]);
+        if (*argv[argn] == '-' && doParseCmds) {
+            Split cmdValue(argStr, "=", 2);
+
+            if (cmdValue.size() == 2) {
+                string cmd = cmdValue[0];
+                string value = cmdValue[1];
+                const char* cmdName = cmd.c_str() + 1;
+                if (cmd.length() > 2 && *cmdName == '-') 
+                    cmdName++;  // allow -- prefix on commands
+
+                switch (*cmdName) {
+                case 'p':
+                    if (validOption(cmdName, "pid")) {
+                        size_t pid = atoi(value.c_str());
+                        if (pid != 0) {
+                            findPids.insert(pid);
+                        } else {
+                            std::cerr << "Invalid pid, must be numeric, " << argStr << std::endl;
+                            optionErrCnt++;
+                        }
+                    }
+                    break;
+
+                default:
+                    showUnknown(argStr.c_str());
+                }
+            } else {
+                const char* cmdName = argStr.c_str() + 1;
+                if (argStr.length() > 2 && *cmdName == '-')
+                    cmdName++;  // allow -- prefix on commands
+
+                switch (*cmdName) {
+                case '?':
+                    showHelp(argv[0]);
+                    return 0;
+                case 'c':
+                    closeHandle = validOption(cmdName, "closeHandle");
+                    break;
+                case 't':
+                    closeHandle = terminateProcess = validOption(cmdName, "terminateProcess");
+                    break;
+
+                default:
+                    showUnknown(argStr.c_str());
+                }
+
+                if (endCmds == argv[argn]) {
+                    doParseCmds = false;
+                }
+            }
+        } else {
+            findNames.push_back(argStr);
+        }
     }
 
-    if (argc == 1) {
-        DisplayHandles();
-    } else {
-        unsigned pid = atoi(argv[1]);
-        if (pid != 0)
-            DisplayHandles(pid);
-        else
-            return FindHandle(0, argv[1]);
+
+    if (optionErrCnt != 0) {
+        return -1;
     }
 
-    return 1;
+    return HandlesT::FindHandles(findPids, findNames, closeHandle, terminateProcess);
 }

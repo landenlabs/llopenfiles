@@ -108,9 +108,17 @@ void WideToMb(const TT* inBuf,  char* outBuf, unsigned outSize) {
     WideCharToMultiByte( CP_ACP, 0, inBuf, -1, outBuf, outSize, NULL, NULL);
 }
 
+static bool contains(const NameList& names, const char* item) {
+    for (const string& name : names) {
+        if (strstr(item, name.c_str()) != nullptr)
+            return true;
+    }
+    return false;
+}
+
 //-------------------------------------------------------------------------------------------------
-bool Handles2::FindHandles(ULONG pid, const char* findName, bool closeHandle_NOT_IMPLEMENTED) {
-    size_t findNameLen = (findName != nullptr) ? strlen(findName) : 0;
+bool Handles2::FindHandles(const PidList& findPids, const NameList& findNames, bool closeHandle, bool terminateProc) {
+    // size_t findNameLen = (findName != nullptr) ? strlen(findName) : 0;
     auto handles = GetHandles();
 
     POBJECT_NAME_INFORMATION pObjName =
@@ -123,20 +131,23 @@ bool Handles2::FindHandles(ULONG pid, const char* findName, bool closeHandle_NOT
     size_t idx = 0;
     // std::cerr << "Total handles=" << handles.size() << std::endl;
 
+    DWORD openProcAccess = PROCESS_ALL_ACCESS | PROCESS_DUP_HANDLE | PROCESS_SUSPEND_RESUME;
+    if (closeHandle)
+        openProcAccess |= PROCESS_TERMINATE;
+
     for (auto &handle : handles) {
         idx += 100;
         ULONG thisPid = handle.ProcessId;
         if (thisPid == 4 || handle.ObjectTypeNumber != 37)  // 37 = File
             continue;
-        if (pid != 0 && pid != thisPid)
+        if (!findPids.empty() && findPids.find((size_t)thisPid) == findPids.end())
             continue;
 
         if (lastPid != thisPid) {
             if (lastPid != 0)
                 CloseHandle(processHandle);
             lastPid = thisPid;
-            processHandle = OpenProcess(
-                PROCESS_ALL_ACCESS | PROCESS_DUP_HANDLE | PROCESS_SUSPEND_RESUME, FALSE, handle.ProcessId);
+            processHandle = OpenProcess(openProcAccess, FALSE, handle.ProcessId);
             if (GetModuleBaseNameA(processHandle, NULL, processName, sizeof(processName)) == 0) {
                 processName[0] = '\0';  // Failed to get process name
             }
@@ -145,33 +156,48 @@ bool Handles2::FindHandles(ULONG pid, const char* findName, bool closeHandle_NOT
         if (processHandle) {
             HANDLE dupHandle = INVALID_HANDLE_VALUE;
 
-            if (DuplicateHandle(processHandle, (HANDLE)handle.Handle, GetCurrentProcess(), &dupHandle,
-                    0, FALSE, DUPLICATE_SAME_ACCESS)) {
+            if (DuplicateHandle(processHandle, (HANDLE)handle.Handle, GetCurrentProcess(), &dupHandle, 0, FALSE, DUPLICATE_SAME_ACCESS)) {
 
                 if (GetFileType(dupHandle) == FILE_TYPE_DISK) {
                     typeBuffer[0] = '\0';
                     if (query(dupHandle, ObjectTypeInformation,pObjType, OBJ_INFO_SIZE)) {
-                        WideToMb(pObjType->TypeName.Buffer, typeBuffer, min(sizeof(typeBuffer), pObjType->TypeName.Length));
+                        WideToMb(pObjType->TypeName.Buffer, typeBuffer, (unsigned int)min(sizeof(typeBuffer),(size_t) pObjType->TypeName.Length));
                     }
 
                     nameBuffer[0] = '\0';
                     OBJECT_INFORMATION_CLASS ObjectNameInformation =  (OBJECT_INFORMATION_CLASS)1;
                     if (query(dupHandle, ObjectNameInformation, pObjName, OBJ_INFO_SIZE)) {
-                        WideToMb(pObjName->Name.Buffer, nameBuffer, min(sizeof(nameBuffer), pObjName->Name.Length));
-                    }
-
-                    if (nameBuffer[0] != '\0' /* && typeBuffer[0] != '\0' */) {
-                        if (findName == nullptr || strstr(nameBuffer, findName) != nullptr)
-                            std::cout << processName << " | " << thisPid << "| " << nameBuffer << std::endl;
+                        WideToMb(pObjName->Name.Buffer, nameBuffer, (unsigned int)min(sizeof(nameBuffer), (size_t)pObjName->Name.Length));
                     }
 
                     CloseHandle(dupHandle);
+
+                    if (nameBuffer[0] != '\0' /* && typeBuffer[0] != '\0' */) {
+                        if (findNames.empty() || contains(findNames, nameBuffer)) {
+                            std::cout << processName << " | " << thisPid << "| " << nameBuffer << std::endl;
+                            if (closeHandle && (!findPids.empty() || !findNames.empty()) ) {
+                                HANDLE toCloseHnd;
+                                DuplicateHandle(processHandle, (HANDLE)handle.Handle, GetCurrentProcess(), &toCloseHnd, 0, FALSE,  DUPLICATE_CLOSE_SOURCE);
+                                if (0 == CloseHandle(toCloseHnd)) {
+                                    std::cerr << "Failed to close handle on " << processName << "(" << thisPid << ") " << nameBuffer << std::endl;
+                                    if (0 == TerminateProcess(processHandle, 0)) {
+                                        std::cerr << "Failed to terminate " << processName << "(" << thisPid << ")\n";
+                                    } else {
+                                        std::cerr << "Terminate " << processName << "(" << thisPid << ")\n";
+                                    }
+                                } else {
+                                    std::cout << "Closed handle on " << processName << "(" << thisPid << ") " << nameBuffer << std::endl;
+                                }
+                            }
+                        }
+                    }
                 }
             }
         } else {
             std::cerr << (idx/handles.size()) << "% \r";
         }
     }
+
     std::cerr << "Done\n";
     return false;
 }

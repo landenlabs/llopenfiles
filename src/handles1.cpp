@@ -447,9 +447,18 @@ typedef NTSTATUS(WINAPI *PNtDuplicateObject)(
 static CHAR nameBuffer[512];
 static CHAR typeBuffer[128];
 
+
+static bool contains(const NameList& names, const char* item) {
+    for (const string& name : names) {
+        if (strstr(item, name.c_str()) != nullptr)
+            return true;
+    }
+    return false;
+}
+
 // -------------------------------------------------------------------------------------------
 
-int Handles1::FindHandles(ULONG pid, const char* handleName, bool closeHandle) {
+int Handles1::FindHandles(const PidList& pids, const NameList& names, bool closeHandle, bool terminateProc) {
     HMODULE ntdll = GetModuleHandle(TEXT("ntdll.dll"));
     if (NULL == ntdll) {
         printf("Failed to load 'ntdll.dll'\n");
@@ -498,9 +507,8 @@ int Handles1::FindHandles(ULONG pid, const char* handleName, bool closeHandle) {
         HANDLE uniqueProcessId = handle.UniqueProcessId;
         ULONG thisPid = HandleToLong(uniqueProcessId);
 
-        if (NULL != pid && thisPid != pid) {
+        if (!pids.empty() && pids.find((size_t)thisPid) == pids.end())
             continue;
-        }
 
         LPSTR pName = NULL;
         LPSTR pType = NULL;
@@ -508,8 +516,7 @@ int Handles1::FindHandles(ULONG pid, const char* handleName, bool closeHandle) {
             if (lastPid != 0)
                 CloseHandle(sourceProcess);
             lastPid = thisPid;
-            sourceProcess = OpenProcess(PROCESS_ALL_ACCESS | PROCESS_DUP_HANDLE |
-                                        PROCESS_SUSPEND_RESUME,
+            sourceProcess = OpenProcess(PROCESS_ALL_ACCESS | PROCESS_DUP_HANDLE | PROCESS_SUSPEND_RESUME,
                                         FALSE, thisPid);
 
             if (GetModuleBaseNameA(sourceProcess, NULL, processName, MAX_PATH) == 0) {
@@ -520,15 +527,13 @@ int Handles1::FindHandles(ULONG pid, const char* handleName, bool closeHandle) {
 
         HANDLE targetHandle = NULL;
         NTSTATUS status =
-            pDuplicateObject(sourceProcess, handleValue, currentProcess,
-                             &targetHandle, 0, FALSE, DUPLICATE_SAME_ACCESS);
+            pDuplicateObject(sourceProcess, handleValue, currentProcess, &targetHandle, 0, FALSE, DUPLICATE_SAME_ACCESS);
         if (NT_SUCCESS(status)) {
             if (NT_SUCCESS(pQueryObject(targetHandle, ObjectTypeInformation,
                                         pTypeInfo, len, NULL))) {
                 pType = typeBuffer;
                 WideCharToMultiByte(CP_ACP, 0, pTypeInfo->TypeName.Buffer, -1, pType,
-                                    min(sizeof(typeBuffer), pTypeInfo->TypeName.Length),
-                                    NULL, NULL);
+                                min(sizeof(typeBuffer), (size_t)pTypeInfo->TypeName.Length), NULL, NULL);
             }
 
             if (GetFileType(targetHandle) == FILE_TYPE_DISK) {
@@ -536,22 +541,19 @@ int Handles1::FindHandles(ULONG pid, const char* handleName, bool closeHandle) {
                                             pNameInfo, len, NULL))) {
                     pName = nameBuffer;
                     WideCharToMultiByte(CP_ACP, 0, pNameInfo->Name.Buffer, -1, pName,
-                                        min(sizeof(nameBuffer), pNameInfo->Name.Length),
-                                        NULL, NULL);
+                                min(sizeof(nameBuffer), (size_t)pNameInfo->Name.Length), NULL, NULL);
                 }
             }
             CloseHandle(targetHandle);
         }
 
-        if (NULL != handleName) {
-            if (NULL == pName || 0 != strcmp(pName, handleName)) {
+        if (!names.empty()) {
+            if (NULL == pName || !contains(names, pName)) {
                 continue;
             }
             if (TRUE == closeHandle) {
-                HANDLE hProcess = OpenProcess(PROCESS_DUP_HANDLE, FALSE,
-                                              HandleToLong(uniqueProcessId));
-                DuplicateHandle(hProcess, handleValue, 0, 0, 0, 0,
-                                DUPLICATE_CLOSE_SOURCE);
+                HANDLE hProcess = OpenProcess(PROCESS_DUP_HANDLE, FALSE,  HandleToLong(uniqueProcessId));
+                DuplicateHandle(hProcess, handleValue, 0, 0, 0, 0, DUPLICATE_CLOSE_SOURCE);
                 CloseHandle(hProcess);
             }
         }

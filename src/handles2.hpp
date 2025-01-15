@@ -34,9 +34,11 @@
 
 #pragma once
 
+#include "ll_stdhdr.hpp"
+
 #include <windows.h>
 #include <winternl.h>
-#include <vector>
+ 
 
 #pragma comment(lib, "ntdll.lib")
 
@@ -69,5 +71,5 @@ namespace Handles2 {
     } SYSTEM_HANDLE_INFORMATION2, * PSYSTEM_HANDLE_INFORMATION2;
 
     std::vector<SYSTEM_HANDLE2> GetHandles();
-    bool FindHandles(ULONG pid, const char* handleName, bool closeHandle);
+    bool FindHandles(const PidList& pids, const NameList& names, bool closeHandle, bool terminateProc);
 }

@@ -38,4 +38,8 @@ copy %prog%-ms\x64\Release\%prog%.exe d:\opt\bin\%prog%.exe
 cmp -h %prog%-ms\x64\Release\%prog%.exe d:\opt\bin\%prog%.exe
 ld -a -ph %prog%-ms\x64\Release\%prog%.exe d:\opt\bin\%prog%.exe
 
+@rem play happy tone
+rundll32.exe cmdext.dll,MessageBeepStub
+rundll32 user32.dll,MessageBeep
+
 :_end

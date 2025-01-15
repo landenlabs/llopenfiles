@@ -134,6 +134,8 @@
   <ItemGroup>
     <ClInclude Include="..\src\handles2.hpp" />
     <ClInclude Include="..\src\handles1.hpp" />
+    <ClInclude Include="..\src\ll_stdhdr.hpp" />
+    <ClInclude Include="..\src\split.hpp" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
