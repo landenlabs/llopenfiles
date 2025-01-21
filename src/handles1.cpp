@@ -482,8 +482,7 @@ int Handles1::FindHandles(const PidList& pids, const NameList& names, bool close
             return 0;
         }
         len *= 2;
-        pHandleInfo =
-            (PSYSTEM_HANDLE_INFORMATION_EX)GlobalAlloc(GMEM_ZEROINIT, len);
+        pHandleInfo = (PSYSTEM_HANDLE_INFORMATION_EX)GlobalAlloc(GMEM_ZEROINIT, len);
         status = pQuerySystemInformation(SystemExtendedHandleInformation, pHandleInfo, len, &len);
     } while (status == STATUS_INFO_LENGTH_MISMATCH);
 
@@ -512,13 +511,15 @@ int Handles1::FindHandles(const PidList& pids, const NameList& names, bool close
 
         LPSTR pName = NULL;
         LPSTR pType = NULL;
+
         if (lastPid != thisPid) {
             if (lastPid != 0)
                 CloseHandle(sourceProcess);
-            lastPid = thisPid;
-            sourceProcess = OpenProcess(PROCESS_ALL_ACCESS | PROCESS_DUP_HANDLE | PROCESS_SUSPEND_RESUME,
-                                        FALSE, thisPid);
 
+            lastPid = thisPid;
+            sourceProcess = OpenProcess(
+                PROCESS_ALL_ACCESS | PROCESS_DUP_HANDLE | PROCESS_SUSPEND_RESUME, FALSE, thisPid);
+             
             if (GetModuleBaseNameA(sourceProcess, NULL, processName, MAX_PATH) == 0) {
                 // Failed to get process name
                 processName[0] = '\0';

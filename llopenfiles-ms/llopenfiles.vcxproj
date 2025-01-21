@@ -127,11 +127,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\global.cpp" />
     <ClCompile Include="..\src\handles2.cpp" />
     <ClCompile Include="..\src\handles1.cpp" />
     <ClCompile Include="..\src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\src\global.hpp" />
     <ClInclude Include="..\src\handles2.hpp" />
     <ClInclude Include="..\src\handles1.hpp" />
     <ClInclude Include="..\src\ll_stdhdr.hpp" />

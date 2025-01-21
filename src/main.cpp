@@ -37,6 +37,7 @@
 
 #include "ll_stdhdr.hpp"
 #include "split.hpp"
+#include "global.hpp"
 
 #include <iostream>
 #include <string>
@@ -92,6 +93,7 @@ void showHelp(const char* argv0) {
         "  -pid=<pid>   ; Limit scan to this pid\n"
         "  -closeHandle ; When matching open handle found, try and close it\n"
         "  -terminate   ; When matching open handle found, try and terminate process\n"
+        "  -vergbose    ; Show extra information \n"
         "\n"
         "  partOfFileName ... \n"
         "\n"
@@ -173,7 +175,9 @@ int main(int argc, const char* argv[]) {
                 case 't':
                     closeHandle = terminateProcess = validOption(cmdName, "terminateProcess");
                     break;
-
+                case 'v':
+                    verbose = validOption(cmdName, "verbose");
+                    break;
                 default:
                     showUnknown(argStr.c_str());
                 }
@@ -192,5 +196,11 @@ int main(int argc, const char* argv[]) {
         return -1;
     }
 
-    return HandlesT::FindHandles(findPids, findNames, closeHandle, terminateProcess);
+    int foundCnt = HandlesT::FindHandles(findPids, findNames, closeHandle, terminateProcess);
+    if (failedOpenProcCnt != 0) 
+    fprintf(stderr, " Denied access to processes=%u\n", failedOpenProcCnt);
+    fprintf(stderr, "          Scanned processed=%d\n", goodOpenProcCnt);
+    fprintf(stderr, "       Total system handles=%d\n", totalHandleCnt);
+    fprintf(stderr, "         Total file handles=%d\n", fileHandleCnt);
+    return foundCnt;
 }
