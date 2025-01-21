@@ -37,7 +37,7 @@
 
 #include <Psapi.h>
 #include <iostream>
-
+ 
 #define NT_SUCCESS(Status) (((NTSTATUS)(Status)) >= 0)
 
 //-------------------------------------------------------------------------------------------------
@@ -165,7 +165,7 @@ bool enableDebugPrivledge() {
         if (!success) {
             std::string errMsg;
             GetErrorMsg(errMsg, err);
-            fprintf(stderr, "Filed to adjust app privledge %s\n", errMsg.c_str());
+            fprintf(stderr, "Filed to adjust app priviledge %s\n", errMsg.c_str());
             return false;
         }
         else if (err == ERROR_NOT_ALL_ASSIGNED) {
@@ -262,8 +262,10 @@ bool Handles2::FindHandles(
                 DWORD fileType = GetFileType(dupHandle);
                 if (fileType == FILE_TYPE_DISK) {
 
-                    char nameBuffer[512];
-                    char typeBuffer[128];
+                    const size_t BUFR_SIZE = 512;
+                    char nameBuffer[BUFR_SIZE];
+                    char typeBuffer[BUFR_SIZE];
+                    char localPath[BUFR_SIZE];
 
                     typeBuffer[0] = '\0';
                     if (query(dupHandle, ObjectTypeInformation,pObjType, OBJ_INFO_SIZE)) {
@@ -272,26 +274,45 @@ bool Handles2::FindHandles(
                     }
 
                     nameBuffer[0] = '\0';
-                    OBJECT_INFORMATION_CLASS ObjectNameInformation =  (OBJECT_INFORMATION_CLASS)1;
-                    if (query(dupHandle, ObjectNameInformation, pObjName, OBJ_INFO_SIZE)) {
-                        unsigned int inLen = (unsigned int)pObjName->Name.Length;
-                        WideToMb(pObjName->Name.Buffer, nameBuffer, sizeof(nameBuffer));
+                    unsigned int nameLen = GetFinalPathNameByHandleA(dupHandle, nameBuffer, sizeof(nameBuffer), FILE_NAME_NORMALIZED);
+                    if (nameLen > 0) {
+                        if (strncmp(nameBuffer, "\\\\?\\", 4) == 0)
+                            memcpy(nameBuffer, nameBuffer+4, sizeof(nameBuffer));
+                    } else if (nameLen == 0) { 
+                        OBJECT_INFORMATION_CLASS ObjectNameInformation =  (OBJECT_INFORMATION_CLASS)1;
+                        if (query(dupHandle, ObjectNameInformation, pObjName, OBJ_INFO_SIZE)) {
+                            unsigned int inLen = (unsigned int)pObjName->Name.Length;
+                            WideToMb(pObjName->Name.Buffer, nameBuffer, sizeof(nameBuffer));
+                       
+                            /* 
+                            // if (GetVolumePathNameA(nameBuffer, localPath, sizeof(localPath))) {
+                            if (GetFullPathNameA(nameBuffer, sizeof(localPath), localPath, nullptr)) {
+                                memcpy(nameBuffer, localPath, sizeof(nameBuffer));
+                            }
+                            */
+                        }
                     }
+                    
 
+
+                    CloseHandle(dupHandle);
+                    CloseHandle(dupHandle);
                     CloseHandle(dupHandle);
 
                     if (nameBuffer[0] != '\0' /* && typeBuffer[0] != '\0' */) {
                         fileHandleCnt++;
 
                         if (findNames.empty() || contains(findNames, nameBuffer)) {
+
                             std::cout << processName << ", " << thisPid;
                             if (verbose) {
                                 // std::cout << " flags=" << handle.Flags;
                                 std::cout << ", access=" << hex << handle.GrantedAccess << dec;
                                 std::cout << ", type=" << (unsigned int)handle.ObjectTypeNumber;
                                 std::cout << ", hnd=" << handle.Handle;
-                                std::cout << ", " << nameBuffer;
                             }
+
+                            std::cout << ", " << nameBuffer;
                             std::cout << std::endl;
 
                             if (closeHandle && (!findPids.empty() || !findNames.empty()) ) {
