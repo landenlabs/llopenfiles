@@ -187,7 +187,7 @@ bool Handles2::FindHandles(
 
     auto handles = GetHandles();
      // std::cerr << "Total handles=" << handles.size() << std::endl;
-    totalHandleCnt = handles.size();
+    totalHandleCnt = (unsigned int)handles.size();
 
     POBJECT_NAME_INFORMATION pObjName = (POBJECT_NAME_INFORMATION)malloc(OBJ_INFO_SIZE);
     POBJECT_TYPE_INFORMATION pObjType = (POBJECT_TYPE_INFORMATION)malloc(OBJ_INFO_SIZE);
@@ -265,7 +265,7 @@ bool Handles2::FindHandles(
                     const size_t BUFR_SIZE = 512;
                     char nameBuffer[BUFR_SIZE];
                     char typeBuffer[BUFR_SIZE];
-                    char localPath[BUFR_SIZE];
+                    // char localPath[BUFR_SIZE];
 
                     typeBuffer[0] = '\0';
                     if (query(dupHandle, ObjectTypeInformation,pObjType, OBJ_INFO_SIZE)) {
@@ -314,6 +314,7 @@ bool Handles2::FindHandles(
 
                             std::cout << ", " << nameBuffer;
                             std::cout << std::endl;
+                            matchCnt++;
 
                             if (closeHandle && (!findPids.empty() || !findNames.empty()) ) {
                                 HANDLE toCloseHnd;
@@ -338,6 +339,6 @@ bool Handles2::FindHandles(
         }
     }
 
-    std::cerr << "Done\n";
+    // std::cerr << "Done\n";
     return false;
 }

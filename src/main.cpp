@@ -33,7 +33,7 @@
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-#define VERSION "v1.3"
+#define VERSION "v1.4"
 
 #include "ll_stdhdr.hpp"
 #include "split.hpp"
@@ -198,9 +198,11 @@ int main(int argc, const char* argv[]) {
 
     int foundCnt = HandlesT::FindHandles(findPids, findNames, closeHandle, terminateProcess);
     if (failedOpenProcCnt != 0) 
-    fprintf(stderr, " Denied access to processes=%u\n", failedOpenProcCnt);
-    fprintf(stderr, "          Scanned processed=%d\n", goodOpenProcCnt);
-    fprintf(stderr, "       Total system handles=%d\n", totalHandleCnt);
-    fprintf(stderr, "         Total file handles=%d\n", fileHandleCnt);
+    fprintf(stderr, "\nLLOpenFiles " VERSION "\n" );
+    fprintf(stderr, " Denied access to processes= %u\n", failedOpenProcCnt);
+    fprintf(stderr, "          Scanned processed= %d\n", goodOpenProcCnt);
+    fprintf(stderr, "       Total system handles= %d\n", totalHandleCnt);
+    fprintf(stderr, "         Total file handles= %d\n", fileHandleCnt);
+    fprintf(stderr, "              Matches shown= %d\n", matchCnt);
     return foundCnt;
 }
