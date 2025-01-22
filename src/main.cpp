@@ -199,10 +199,10 @@ int main(int argc, const char* argv[]) {
     int foundCnt = HandlesT::FindHandles(findPids, findNames, closeHandle, terminateProcess);
     if (failedOpenProcCnt != 0) 
     fprintf(stderr, "\nLLOpenFiles " VERSION "\n" );
-    fprintf(stderr, " Denied access to processes= %u\n", failedOpenProcCnt);
-    fprintf(stderr, "          Scanned processed= %d\n", goodOpenProcCnt);
-    fprintf(stderr, "       Total system handles= %d\n", totalHandleCnt);
-    fprintf(stderr, "         Total file handles= %d\n", fileHandleCnt);
-    fprintf(stderr, "              Matches shown= %d\n", matchCnt);
+    fprintf(stderr, "      Process Denied= %u (need admin)\n", failedOpenProcCnt);
+    fprintf(stderr, "     Process Checked= %d\n", goodOpenProcCnt);
+    fprintf(stderr, "       Total handles= %d\n", totalHandleCnt);
+    fprintf(stderr, "Checked File handles= %d\n", fileHandleCnt);
+    fprintf(stderr, " Matched Files shown= %d\n", matchCnt);
     return foundCnt;
 }
