@@ -18,8 +18,22 @@ Code is all C++ with MS Visual Studio solution.
 <pre>
 llopenfiles.exe -?
 
-List open files v1.2 Dec 22 2024
-llopenfiles [pid | partOfFilename]
+List open files v1.6 Jan 25 2025
+llopenfiles
+  -pid=<pid>   ; Limit scan to this pid
+  -closeHandle ; When matching open handle found, try and close it
+  -terminate   ; When matching open handle found, try and terminate process
+  -verbose     ; Show extra information
+
+  partOfFileName ...
+
+Examples:
+  llopenfiles                              ; Show all open files
+  llopenfiles file1.txt file2.txt          ; Only show open file matches
+  llopenfiles -pid=123 -pid=345            ; Show files of matched process ids
+  llopenfiles -pid=123 -pid=345 filepat1 filepat2
+  llopenfiles -close my_text_file.txt      ; If matched, try and close it
+  llopenfiles -terminate my_text_file.txt  ; If matched, try and terminate process
 </pre>
 
 ### Code based off of work from these github projects
