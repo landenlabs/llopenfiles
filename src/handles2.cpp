@@ -293,10 +293,6 @@ bool Handles2::FindHandles(
                         }
                     }
                     
-
-
-                    CloseHandle(dupHandle);
-                    CloseHandle(dupHandle);
                     CloseHandle(dupHandle);
 
                     if (nameBuffer[0] != '\0' /* && typeBuffer[0] != '\0' */) {

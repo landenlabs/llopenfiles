@@ -49,5 +49,6 @@ typedef unsigned short  UShort;
 
 using namespace std;        // use after including c++ headers
  
-typedef set<size_t> PidList;
+typedef unsigned long Pid_t;
+typedef set<Pid_t> PidList;
 typedef vector<string> NameList;

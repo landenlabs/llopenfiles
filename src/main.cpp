@@ -33,7 +33,7 @@
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-#define VERSION "v1.4"
+#define VERSION "v1.5"
 
 #include "ll_stdhdr.hpp"
 #include "split.hpp"
@@ -66,25 +66,6 @@ bool terminateProcess = false;
     #define HandlesT Handles1
 #endif
 
- 
-
-/* 
-int DisplayHandles() {
-    return HandlesT::FindHandles(allPids, allNames, FALSE);
-}
-
-int DisplayHandles(const PidList& findPids) {
-    return HandlesT::FindHandles(findPids, allNames, FALSE);
-}
-
-int FindHandles(const PidList& findPids, const NameList& findNames) {
-    return HandlesT::FindHandles(findPids, findNames, FALSE);
-}
-
-int CloseHandle(const PidList& findPids, const NameList& findNames) {
-    return HandlesT::FindHandles(findPids, findNames, TRUE);
-}
-*/
 
 void showHelp(const char* argv0) {
     std::cout << "List open files " VERSION  " " __DATE__ "\n"
@@ -93,13 +74,14 @@ void showHelp(const char* argv0) {
         "  -pid=<pid>   ; Limit scan to this pid\n"
         "  -closeHandle ; When matching open handle found, try and close it\n"
         "  -terminate   ; When matching open handle found, try and terminate process\n"
-        "  -vergbose    ; Show extra information \n"
+        "  -verbose     ; Show extra information \n"
         "\n"
         "  partOfFileName ... \n"
         "\n"
         "Examples:\n"
         "  llopenfiles file1.txt file2.txt \n"
         "  llopenfiles -pid=123 -pid=345 \n"
+        "  llopenfiles -pid=123 -pid=345 filepat1 filepat2 \n"
         "  llopenfiles -close my_text_file.txt \n"
         "  llopenfiles -terminate my_text_file.txt \n"
         "\n";
@@ -107,6 +89,8 @@ void showHelp(const char* argv0) {
 
 void showUnknown(const char* msg) {
     std::cerr << "Unknown option:" << msg << std::endl;
+    std::cerr << "Use --help to see choices\n";
+    optionErrCnt++;
 }
 
 bool validOption(const char* validCmd, const char* possibleCmd, bool reportErr = true) {
@@ -119,10 +103,25 @@ bool validOption(const char* validCmd, const char* possibleCmd, bool reportErr =
     }
 
     if (reportErr) {
-        std::cerr <<  "Unknown option:'" << possibleCmd << "', expect:'" << validCmd  << std::endl;
-        optionErrCnt++;
+        std::cerr << "Unknown option:'" << possibleCmd << "', expect:'" << validCmd  << std::endl;
     }
+    optionErrCnt++;
     return false;
+}
+
+std::string to_str(Pid_t pid) { return std::to_string(pid); }
+std::string to_str(std::string str) { return str; }
+
+template <typename TT>
+std::string join(TT group, const char* separator) {
+    std::string out;
+    const char* sep = "";
+    for (auto item : group) {
+        out += sep;
+        out += to_str(item);
+        sep = separator;
+    }
+    return out;
 }
 
 int main(int argc, const char* argv[]) {
@@ -147,7 +146,7 @@ int main(int argc, const char* argv[]) {
                 switch (*cmdName) {
                 case 'p':
                     if (validOption(cmdName, "pid")) {
-                        size_t pid = atoi(value.c_str());
+                        Pid_t pid = atoi(value.c_str());
                         if (pid != 0) {
                             findPids.insert(pid);
                         } else {
@@ -172,11 +171,16 @@ int main(int argc, const char* argv[]) {
                 case 'c':
                     closeHandle = validOption(cmdName, "closeHandle");
                     break;
+                case 'h':
+                    showHelp(argv[0]);
+                    return 0;
                 case 't':
                     closeHandle = terminateProcess = validOption(cmdName, "terminateProcess");
                     break;
                 case 'v':
                     verbose = validOption(cmdName, "verbose");
+                    break;
+                case '-':
                     break;
                 default:
                     showUnknown(argStr.c_str());
@@ -197,12 +201,21 @@ int main(int argc, const char* argv[]) {
     }
 
     int foundCnt = HandlesT::FindHandles(findPids, findNames, closeHandle, terminateProcess);
-    if (failedOpenProcCnt != 0) 
-    fprintf(stderr, "\nLLOpenFiles " VERSION "\n" );
-    fprintf(stderr, "      Process Denied= %u (need admin)\n", failedOpenProcCnt);
-    fprintf(stderr, "     Process Checked= %d\n", goodOpenProcCnt);
+
+    fprintf(stderr, "\nLLOpenFiles " VERSION "\n");
+
+
+    if (!findPids.empty())
+        std::cerr << "    Looking for PIDs: " << join(findPids, ", ") << std::endl;
+    if (!findNames.empty())
+        std::cerr << "   Looking for Files: " << join(findNames, ", ") << std::endl;
+    fprintf(stderr, "       Matches shown= %d\n\n", matchCnt);
+
     fprintf(stderr, "       Total handles= %d\n", totalHandleCnt);
     fprintf(stderr, "Checked File handles= %d\n", fileHandleCnt);
-    fprintf(stderr, " Matched Files shown= %d\n", matchCnt);
+    fprintf(stderr, "     Checked Process= %d\n", goodOpenProcCnt);
+    if (failedOpenProcCnt != 0)
+        fprintf(stderr, "     Ignored Process= %u (need admin)\n", failedOpenProcCnt);
+
     return foundCnt;
 }
