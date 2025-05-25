@@ -249,6 +249,10 @@ bool Handles2::FindHandles(
             } else if (GetModuleBaseNameA(processHandle, NULL, processName, sizeof(processName)) == 0) {
                 processName[0] = '\0';  // Failed to get process name
             } else {
+                if (contains(findNames, processName)) {
+                    std::cout << processName << ", " << thisPid << endl;
+                    matchCnt++;
+                }
                 goodOpenProcCnt++;
             }
         }
