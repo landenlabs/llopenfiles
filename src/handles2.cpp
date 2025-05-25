@@ -229,7 +229,7 @@ bool Handles2::FindHandles(
         //    Windows 11          40
         //
 
-        if (handle.ObjectTypeNumber < 25 || handle.ObjectTypeNumber > 40) {
+        if (handle.ObjectTypeNumber < 25 || handle.ObjectTypeNumber > 41) {
             continue;
         }
 
@@ -260,7 +260,7 @@ bool Handles2::FindHandles(
             if (DuplicateHandle(processHandle, (HANDLE)handle.Handle, GetCurrentProcess(), &dupHandle, 0, FALSE, DUPLICATE_SAME_ACCESS)) {
                
                 DWORD fileType = GetFileType(dupHandle);
-                if (fileType == FILE_TYPE_DISK) {
+                if (fileType == FILE_TYPE_DISK || fileType == FILE_TYPE_UNKNOWN) {
 
                     const size_t BUFR_SIZE = 512;
                     char nameBuffer[BUFR_SIZE];
@@ -279,6 +279,8 @@ bool Handles2::FindHandles(
                         if (strncmp(nameBuffer, "\\\\?\\", 4) == 0)
                             memcpy(nameBuffer, nameBuffer+4, sizeof(nameBuffer));
                     } else if (nameLen == 0) { 
+                        DWORD err = GetLastError(); // 6 = handle is invalid. 
+
                         OBJECT_INFORMATION_CLASS ObjectNameInformation =  (OBJECT_INFORMATION_CLASS)1;
                         if (query(dupHandle, ObjectNameInformation, pObjName, OBJ_INFO_SIZE)) {
                             unsigned int inLen = (unsigned int)pObjName->Name.Length;
@@ -328,6 +330,9 @@ bool Handles2::FindHandles(
                             }
                         }
                     }
+                }
+                else {
+                    // if (verbose) std::cerr << "FileType=" << fileType << std::endl;
                 }
             }
         } else {
