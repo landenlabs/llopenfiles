@@ -37,6 +37,7 @@
 
 #include <Psapi.h>
 #include <iostream>
+#include <regex>
  
 #define NT_SUCCESS(Status) (((NTSTATUS)(Status)) >= 0)
 
@@ -107,9 +108,21 @@ int WideToMb(const WCHAR* inBuf,  char* outBuf, size_t maxOutSize) {
     return WideCharToMultiByte( CP_ACP, 0, inBuf, -1, outBuf, (int)maxOutSize, NULL, NULL);
 }
 
+
+
+static bool regcompare(const char* str, const std::string& regStr) {
+    try {
+        std::regex re(regStr, std::regex::extended);
+        return std::regex_match(str, re);
+    } catch (const std::regex_error&) {
+        return false; // Invalid regex pattern
+    }
+}
+
+
 static bool contains(const NameList& names, const char* item) {
     for (const string& name : names) {
-        if (strstr(item, name.c_str()) != nullptr)
+        if (strstr(item, name.c_str()) != nullptr || regcompare(item, name))
             return true;
     }
     return false;

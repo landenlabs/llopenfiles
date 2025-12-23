@@ -33,7 +33,7 @@
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-#define VERSION "v1.7"
+#define VERSION "v1.12"
 
 #include "ll_stdhdr.hpp"
 #include "split.hpp"
@@ -81,6 +81,7 @@ void showHelp(const char* argv0) {
         "Examples:\n"
         "  llopenfiles                               ; Show all open files \n"
         "  llopenfiles file1.txt file2pat            ; Only show open file matches\n"
+        "  llopenfiles .*File.*                      ; Full regExp on full path \n"
         "  llopenfiles -pid=123 -pid=345             ; Show files of matched process ids\n"
         "  llopenfiles -pid=123 -pid=345 filepat1 filepat2\n"
         "  llopenfiles -close       my_text_file.txt ; If matched, try and close it\n"
