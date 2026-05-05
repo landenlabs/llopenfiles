@@ -13,7 +13,7 @@
 //
 // ----- License ----
 //
-// Copyright (c) 2016 Dennis Lang
+// Copyright (c) 2026 Dennis Lang
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,7 @@
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-#define VERSION "v6.05.01"
+#define VERSION "v6.05.04"
 
 #include "ll_stdhdr.hpp"
 #include "split.hpp"
