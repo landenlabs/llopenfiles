@@ -33,7 +33,7 @@
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-#define VERSION "v1.12"
+#define VERSION "v6.05.01"
 
 #include "ll_stdhdr.hpp"
 #include "split.hpp"
