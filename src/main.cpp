@@ -33,7 +33,11 @@
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
+<<<<<<< Updated upstream
 #define VERSION "v6.05.05"
+=======
+#define VERSION "v6.05.10"
+>>>>>>> Stashed changes
 
 #include "ll_stdhdr.hpp"
 #include "split.hpp"
