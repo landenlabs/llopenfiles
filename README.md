@@ -1,7 +1,7 @@
 ﻿<table border="0">
   <tr>
     <td>
-      <!-- VERSION -->v6.05.24<br>
+      <!-- VERSION -->v6.05.25<br>
       <!-- DATE -->24-May-2026<br>
       Windows<br>
       <a href="https://landenlabs.com">Home</a>
@@ -34,7 +34,7 @@ Code is all C++ with MS Visual Studio solution.
 <pre>
 llopenfiles.exe -?
 
-List open files v1.6 Jan 25 2025
+List open files v1.6 Jan 25 2026
 llopenfiles
   -pid=<pid>   ; Limit scan to this pid
   -closeHandle ; When matching open handle found, try and close it

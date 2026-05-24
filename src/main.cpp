@@ -1,6 +1,6 @@
 //-------------------------------------------------------------------------------------------------
 //
-//  llopenfiles     Dec-2024      Dennis Lang
+//  llopenfiles     Dec-2026      Dennis Lang
 //
 //  Find open file handles. 
 //  This program has two implementations, based off of code from these github projects
@@ -8,7 +8,7 @@
 //    https://github.com/yihleego/handle-tools/tree/master/src
 //-------------------------------------------------------------------------------------------------
 //
-// Author: Dennis Lang - 2024
+// Author: Dennis Lang - 2026
 // https://landenlabs.com/
 //
 // ----- License ----
