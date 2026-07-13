@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Dennis Lang
+//
 // stdafx.cpp : source file that includes just the standard includes
 // NtQuerySysInfo_SystemHandleInformation.pch will be the pre-compiled header
 // stdafx.obj will contain the pre-compiled type information

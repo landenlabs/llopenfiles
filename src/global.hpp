@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Dennis Lang
+//
 
 
 extern unsigned int failedOpenProcCnt;

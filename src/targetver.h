@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Dennis Lang
+//
 #pragma once
 
 // Including SDKDDKVer.h defines the highest available Windows platform.

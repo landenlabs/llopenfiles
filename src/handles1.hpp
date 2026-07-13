@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Dennis Lang
+//
 
 // Handle1
 // https://github.com/yihleego/handle-tools/tree/master/src
