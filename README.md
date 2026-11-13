@@ -15,7 +15,10 @@
 </table>
 
 # llopenfiles
-DOS / Windows commnad line list openfiles 
+DOS / Windows command line list openfiles
+
+[![Build status](https://github.com/landenlabs/llopenfiles/actions/workflows/build.yml/badge.svg)](https://github.com/landenlabs/llopenfiles/actions/workflows/build.yml)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 Visit home website
 
@@ -24,7 +27,7 @@ Visit home website
 
 ## Introduction
 
-Command line utility to list or find open files. Default is to list all open files preceeded with the process name and id. 
+Command line utility to list or find open files. Default is to list all open files preceded with the process name and id. 
 Optionally you can pass a process id to limit output to just that process
 or pass part of a file name to isolate individual files. 
 
@@ -34,7 +37,7 @@ Code is all C++ with MS Visual Studio solution.
 <pre>
 llopenfiles.exe -?
 
-List open files v1.6 Jan 25 2026
+List open files v6.05.05 Jan 25 2026
 llopenfiles
   -pid=<pid>   ; Limit scan to this pid
   -closeHandle ; When matching open handle found, try and close it
@@ -45,7 +48,8 @@ llopenfiles
 
 Examples:
   llopenfiles                              ; Show all open files
-  llopenfiles file1.txt file2.txt          ; Only show open file matches
+  llopenfiles file1.txt file2pat           ; Only show open file matches
+  llopenfiles .*File.*                     ; Full regExp on full path
   llopenfiles -pid=123 -pid=345            ; Show files of matched process ids
   llopenfiles -pid=123 -pid=345 filepat1 filepat2
   llopenfiles -close my_text_file.txt      ; If matched, try and close it
@@ -67,3 +71,21 @@ Examples:
 
 - [Handle](https://docs.microsoft.com/en-us/sysinternals/downloads/handle)
 - [Process Explorer](https://docs.microsoft.com/en-us/sysinternals/downloads/process-explorer)
+
+## License
+
+```
+Copyright 2026 Dennis Lang
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+ http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+```
+See [LICENSE](LICENSE) for the full license text.
